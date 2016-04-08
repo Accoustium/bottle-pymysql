@@ -14,31 +14,31 @@ Results are returned as dictionaries.
 Usage Example::
 
     import bottle
-    import bottle_mysql
+    import bottle_pymysql
 
     app = bottle.Bottle()
     # dbhost is optional, default is localhost
-    plugin = bottle_mysql.Plugin(dbuser='user', dbpass='pass', dbname='db')
+    plugin = bottle_pymysql.Plugin(dbuser='user', dbpass='pass', dbname='db')
     app.install(plugin)
 
     @app.route('/show/:<tem>')
-    def show(item, db):
-        db.execute('SELECT * from items where name="%s"', (item,))
-        row = db.fetchone()
+    def show(item, pymydb):
+        pymydb.execute('SELECT * from items where name="%s"', (item,))
+        row = pymydb.fetchone()
         if row:
             return template('showitem', page=row)
         return HTTPError(404, "Page not found")
 '''
 
-__author__ = "Michael Lustfield"
-__version__ = '0.2.2'
+__author__ = "Alexandr N. Zamaraev"
+__version__ = '0.0.1'
 __license__ = 'MIT'
 
 ### CUT HERE (see setup.py)
 
 import inspect
-import MySQLdb
-import MySQLdb.cursors as cursors
+import pymysql
+import pymysql.cursors as cursors
 import bottle
 
 
@@ -50,7 +50,7 @@ if not hasattr(bottle, 'PluginError'):
     bottle.PluginError = PluginError
 
 
-class MySQLPlugin(object):
+class PyMySQLPlugin(object):
     '''
     This plugin passes a mysql database handle to route callbacks
     that accept a `db` keyword argument. If a callback does not expect
@@ -58,11 +58,13 @@ class MySQLPlugin(object):
     settings on a per-route basis.
     '''
 
-    name = 'mysql'
+    name = 'pymysql'
     api = 2
 
-    def __init__(self, dbuser=None, dbpass=None, dbname=None, dbhost='localhost', dbport=3306, dbunixsocket=None,
-                 autocommit=True, dictrows=True, keyword='db', charset='utf8', timezone=None):
+    def __init__(
+        self, dbuser=None, dbpass=None, dbname=None, dbhost='localhost', dbport=3306, dbunixsocket=None,
+        autocommit=True, dictrows=True, keyword='pymydb', charset='utf8', timezone=None
+    ):
         self.dbhost = dbhost
         self.dbport = dbport
         self.dbunixsocket = dbunixsocket
@@ -80,10 +82,11 @@ class MySQLPlugin(object):
         Make sure that other installed plugins don't affect the same keyword argument.
         '''
         for other in app.plugins:
-            if not isinstance(other, MySQLPlugin):
+            if not isinstance(other, PyMySQLPlugin):
                 continue
             if other.keyword == self.keyword:
-                raise PluginError("Found another mysql plugin with conflicting settings (non-unique keyword).")
+                raise PluginError(
+                    "Found another pymysql plugin with conflicting settings (non-unique keyword).")
             elif other.name == self.name:
                 self.name += '_%s' % self.keyword
 
@@ -97,11 +100,18 @@ class MySQLPlugin(object):
             _callback = route.callback
 
         # Override global configuration with route-specific values.
-        if "mysql" in config:
+        if "pymysql" in config:
             # support for configuration before `ConfigDict` namespaces
-            g = lambda key, default: config.get('mysql', {}).get(key, default)
+            g = lambda key, default: config.get('pymysql', {}).get(key, default)
         else:
-            g = lambda key, default: config.get('mysql.' + key, default)
+            g = lambda key, default: config.get('pymysql.' + key, default)
+
+        keyword = g('keyword', self.keyword)
+        # Test if the original callback accepts a 'db' keyword.
+        # Ignore it if it does not need a database handle.
+        _args = inspect.getargspec(_callback)
+        if keyword not in _args.args:
+            return callback
 
         dbhost = g('dbhost', self.dbhost)
         dbport = g('dbport', self.dbport)
@@ -111,15 +121,8 @@ class MySQLPlugin(object):
         dbname = g('dbname', self.dbname)
         autocommit = g('autocommit', self.autocommit)
         dictrows = g('dictrows', self.dictrows)
-        keyword = g('keyword', self.keyword)
         charset = g('charset', self.charset)
         timezone = g('timezone', self.timezone)
-
-        # Test if the original callback accepts a 'db' keyword.
-        # Ignore it if it does not need a database handle.
-        _args = inspect.getargspec(_callback)
-        if keyword not in _args.args:
-            return callback
 
         def wrapper(*args, **kwargs):
             # Connect to the database
@@ -142,7 +145,7 @@ class MySQLPlugin(object):
                     kw['host'] = dbhost
                     kw['port'] = dbport
 
-                con = MySQLdb.connect(**kw)
+                con = pymysql.connect(**kw)
 
                 cur = con.cursor()
                 if timezone:
@@ -158,7 +161,7 @@ class MySQLPlugin(object):
                 rv = callback(*args, **kwargs)
                 if autocommit:
                     con.commit()
-            except MySQLdb.IntegrityError as e:
+            except pymysql.IntegrityError as e:
                 con.rollback()
                 raise bottle.HTTPError(500, "Database Error", e)
             except bottle.HTTPError:
@@ -176,4 +179,4 @@ class MySQLPlugin(object):
         return wrapper
 
 
-Plugin = MySQLPlugin
+Plugin = PyMySQLPlugin

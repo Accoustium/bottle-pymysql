@@ -12,22 +12,22 @@ except ImportError:
 # This ugly hack executes the first few lines of the module file to look up some
 # common variables. We cannot just import the module because it depends on other
 # modules that might not be installed yet.
-filename = os.path.join(os.path.dirname(__file__), 'bottle_mysql.py')
+filename = os.path.join(os.path.dirname(__file__), 'bottle_pymysql.py')
 source = open(filename).read().split('### CUT HERE')[0]
 exec(source)
 
 setup(
-    name = 'bottle-mysql',
+    name = 'bottle-pymysql',
     version = __version__,
-    url = 'https://github.com/tg123/bottle-mysql',
+    url = 'https://github.com/tonal/bottle-pymysql',
     description = 'MySQL integration for Bottle.',
     long_description = __doc__,
-    author = 'Michael Lustfield',
-    author_email = 'dev@lustfield.net',
+    author = 'Alexandr N. Zamaraev',
+    author_email = 'tonal@promsoft.ru',
     license = __license__,
     platforms = 'any',
     py_modules = [
-        'bottle_mysql'
+        'bottle_pymysql'
     ],
     requires = [i.strip() for i in open("requirements.txt").readlines()],
     classifiers = [

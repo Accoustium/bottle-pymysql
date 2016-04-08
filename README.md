@@ -1,8 +1,8 @@
-Bottle-MySQL
+Bottle-PyMySQL
 ============
-[![Build Status](https://travis-ci.org/tg123/bottle-mysql.svg?branch=master)](https://travis-ci.org/tg123/bottle-mysql)
-[![Latest Version](https://pypip.in/version/bottle-mysql/badge.svg)](https://pypi.python.org/pypi/bottle-mysql/)
-[![Downloads](https://pypip.in/download/bottle-mysql/badge.svg)](https://pypi.python.org/pypi/bottle-mysql/)
+[![Build Status](https://travis-ci.org/tg123/bottle-pymysql.svg?branch=master)](https://travis-ci.org/tg123/bottle-pymysql)
+[![Latest Version](https://pypip.in/version/bottle-pymysql/badge.svg)](https://pypi.python.org/pypi/bottle-pymysql/)
+[![Downloads](https://pypip.in/download/bottle-pymysql/badge.svg)](https://pypi.python.org/pypi/bottle-pymysql/)
 
 MySQL is the world's most used relational database management system (RDBMS) that runs
 as a server providing multi-user access to a number of databases.
@@ -12,8 +12,7 @@ Once installed, all you have to do is to add an ``db`` keyword argument
 (configurable) to route callbacks that need a database connection.
 
 
-`Bottle-MySQL` is written by Michael Lustfield [MTecknology](https://github.com/MTecknology)
-and now is maintained by Boshi Lian (tgic).
+`Bottle-PyMySQL` forked from `Bottle-MySQL` 
 
 
 Installation
@@ -21,12 +20,12 @@ Installation
 
 Install using pip:
 
-    $ pip install bottle-mysql
+    $ pip install bottle-pymysql
 
 or download the latest version from github:
 
-    $ git clone git://github.com/tg123/bottle-mysql.git
-    $ cd bottle-mysql
+    $ git clone git://github.com/tonal/bottle-pymysql.git
+    $ cd bottle-pymysql
     $ python setup.py install
 
 Usage
@@ -37,17 +36,17 @@ Once installed to an application, the plugin passes an open
 argument:
 
     import bottle
-    import bottle_mysql
+    import bottle_pymysql
 
     app = bottle.Bottle()
     # dbhost is optional, default is localhost
-    plugin = bottle_mysql.Plugin(dbuser='user', dbpass='pass', dbname='some_db')
+    plugin = bottle_pymysql.Plugin(dbuser='user', dbpass='pass', dbname='some_db')
     app.install(plugin)
 
     @app.route('/show/<item>')
-    def show(item, db):
-        db.execute('SELECT * from items where name="%s"', (item,))
-        row = db.fetchone()
+    def show(item, pymydb):
+        pymydb.execute('SELECT * from items where name="%s"', (item,))
+        row = pymydb.fetchone()
         if row:
             return template('showitem', page=row)
         return HTTPError(404, "Page not found")
@@ -79,20 +78,20 @@ The following configuration options exist for the plugin class:
 
 You can override each of these values on a per-route basis: 
 
-    @app.route('/cache/<item>', mysql={'dbname': 'xyz_db'})
+    @app.route('/cache/<item>', pymysql={'dbname': 'xyz_db'})
     def cache(item, db):
         ...
    
 or install two plugins with different ``keyword`` settings to the same application:
 
     app = bottle.Bottle()
-    local_db = bottle_mysql.Plugin(dbuser='user', dbpass='pass', dbname='local_db')
-    prod_db = bottle_mysql.Plugin(dbuser='user', dbpass='pass', dbname='some_db', dbhost='sql.domain.tld', keyword='remote_db')
+    local_db = bottle_pymysql.Plugin(dbuser='user', dbpass='pass', dbname='local_db')
+    prod_db = bottle_pymysql.Plugin(dbuser='user', dbpass='pass', dbname='some_db', dbhost='sql.domain.tld', keyword='remote_db')
     app.install(local_db)
     app.install(prod_db)
 
     @app.route('/show/<item>')
-    def show(item, db):
+    def show(item, pymydb):
         ...
 
     @app.route('/cache/<item>')

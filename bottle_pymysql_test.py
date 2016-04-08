@@ -1,23 +1,23 @@
 import unittest
 
 import bottle
-import bottle_mysql
-import MySQLdb
+import bottle_pymysql
+import pymysql
 
-from _mysql_exceptions import OperationalError
+from pymysql import OperationalError
 
 
-class BottleMySQLTest(unittest.TestCase):
+class BottlePyMySQLTest(unittest.TestCase):
     USER = 'root'
     PASS = ''
-    DBNAME = 'bottle_mysql_test'
+    DBNAME = 'bottle_pymysql_test'
     SOCKET = '/var/run/mysqld/mysqld.sock'
     DBHOST = '127.0.0.1'
 
     # copy from https://github.com/bottlepy/bottle-sqlite
     def test_with_keyword(self):
-        def test(db):
-            self.assertTrue(isinstance(db, MySQLdb.cursors.BaseCursor))
+        def test(pymydb):
+            self.assertTrue(isinstance(pymydb, pymysql.cursors.Cursor))
 
         self._run(test)
 
@@ -28,25 +28,25 @@ class BottleMySQLTest(unittest.TestCase):
         self._run(test_1)
 
         def test_2(**kw):
-            self.assertFalse('db' in kw)
+            self.assertFalse('pymydb' in kw)
 
         self._run(test_2)
 
     def test_install_conflicts(self):
 
         app = self._app()  # install default
-        app = self._app(app=app, keyword='db2')  # install another
+        app = self._app(app=app, keyword='pymydb2')  # install another
 
-        def test(db, db2):
-            self.assertEqual(type(db), type(db2))
+        def test(pymydb, pymydb2):
+            self.assertEqual(type(pymydb), type(pymydb2))
 
         self._run(test, app)
 
     def test_echo(self):
-        def test(db):
-            db.execute(''' SELECT 1 AS TEST ''')
+        def test(pymydb):
+            pymydb.execute(''' SELECT 1 AS TEST ''')
 
-            self.assertEqual({'TEST': 1}, db.fetchone())
+            self.assertEqual({'TEST': 1}, pymydb.fetchone())
 
         # test normal
         self._run(test, self._app(dbhost=self.DBHOST))
@@ -54,35 +54,48 @@ class BottleMySQLTest(unittest.TestCase):
         # test socket
         self._run(test, self._app(dbunixsocket=self.SOCKET))
 
-    def test_bad_connection(self):
+    def _bad_connection_raise(self, app, word, test):
+        try:
+            def empty(pymydb):
+                pass
 
-        def should_raise(app, word):
-            try:
-                def empty(db):
-                    pass
+            self._run(empty, app)
 
-                self._run(empty, app)
-            except OperationalError as e:
-                self.assertTrue(word in e.args[1])
-                return
+        except OperationalError as e:
+            # self.assertTrue(word in e.args[1])
+            #assert word in e.args[1]
+            test(word, e)
+            return
 
-            self.fail('should not success')
+        self.fail('should not success')
 
 
-        # bad sock
-        sock = '/not_exits.sock'
-        should_raise(self._app(dbunixsocket=sock), sock)
+    def test_bad_connection_host(self):
+
+        def test(word, e):
+            assert word in e.args[1]
 
         # bad host
         host = '255.255.255.255'
-        should_raise(self._app(dbhost=host), host)
+        self._bad_connection_raise(self._app(dbhost=host), host, test)
+
+    def test_bad_connection_sock(self):
+
+        def test(word, e):
+            assert hasattr(e, 'original_exception')
+            oex = e.original_exception
+            assert oex.errno == 2
+
+        # bad sock
+        sock = '/not_exits.sock'
+        self._bad_connection_raise(self._app(dbunixsocket=sock), sock, test)
 
     def test_dictrow(self):
 
         def equal_type(t):
-            def test_type(db):
-                db.execute(''' SELECT 1 AS TEST ''')
-                self.assertEqual(type(db.fetchone()), t)
+            def test_type(pymydb):
+                pymydb.execute(''' SELECT 1 AS TEST ''')
+                self.assertEqual(type(pymydb.fetchone()), t)
 
             return test_type
 
@@ -95,9 +108,9 @@ class BottleMySQLTest(unittest.TestCase):
     def test_timezone(self):
 
         def equal_tz(tz):
-            def query_timezone(db):
-                db.execute(''' SELECT @@session.time_zone as TZ;''')
-                self.assertEqual({'TZ': tz}, db.fetchone())
+            def query_timezone(pymydb):
+                pymydb.execute(''' SELECT @@session.time_zone as TZ;''')
+                self.assertEqual({'TZ': tz}, pymydb.fetchone())
 
             return query_timezone
 
@@ -111,32 +124,32 @@ class BottleMySQLTest(unittest.TestCase):
 
         self._create_test_table()
 
-        def crud(db):
+        def crud(pymydb):
             data = 'test'
 
             # insert
-            rows = db.execute(''' INSERT INTO `bottle_mysql_test` VALUE (NULL, %s) ''', (data,))
+            rows = pymydb.execute(''' INSERT INTO `bottle_mysql_test` VALUE (NULL, %s) ''', (data,))
             self.assertEqual(rows, 1)
 
-            db.execute(''' SELECT last_insert_id() as ID ''')
+            pymydb.execute(''' SELECT last_insert_id() as ID ''')
 
-            data_id = db.fetchone()['ID']
+            data_id = pymydb.fetchone()['ID']
             self.assertTrue(data_id > 0)
 
             # select
-            db.execute(''' SELECT * FROM `bottle_mysql_test` WHERE `id` = %s''', (data_id, ))
-            self.assertEqual({'id': data_id, 'text': data, }, db.fetchone())
+            pymydb.execute(''' SELECT * FROM `bottle_mysql_test` WHERE `id` = %s''', (data_id, ))
+            self.assertEqual({'id': data_id, 'text': data, }, pymydb.fetchone())
 
             # update
             data = 'new'
-            rows = db.execute(''' UPDATE `bottle_mysql_test` SET `text` = %s WHERE `id` = %s''', (data, data_id, ))
+            rows = pymydb.execute(''' UPDATE `bottle_mysql_test` SET `text` = %s WHERE `id` = %s''', (data, data_id, ))
             self.assertEqual(rows, 1)
 
-            db.execute(''' SELECT * FROM `bottle_mysql_test` WHERE `id` = %s''', (data_id, ))
-            self.assertEqual({'id': data_id, 'text': data, }, db.fetchone())
+            pymydb.execute(''' SELECT * FROM `bottle_mysql_test` WHERE `id` = %s''', (data_id, ))
+            self.assertEqual({'id': data_id, 'text': data, }, pymydb.fetchone())
 
             # delete
-            rows = db.execute(''' DELETE FROM `bottle_mysql_test` WHERE `id` = %s''', (data_id, ))
+            rows = pymydb.execute(''' DELETE FROM `bottle_mysql_test` WHERE `id` = %s''', (data_id, ))
             self.assertEqual(rows, 1)
 
         self._run(crud)
@@ -154,9 +167,9 @@ class BottleMySQLTest(unittest.TestCase):
         app = self._app()
 
         # config with override
-        @app.get('/', mysql={'autocommit': False})
-        def insert(db):
-            self._insert_one(db)
+        @app.get('/', pymysql={'autocommit': False})
+        def insert(pymydb):
+            self._insert_one(pymydb)
 
         self._request(app, '/')
         self.assert_records(0)
@@ -168,8 +181,8 @@ class BottleMySQLTest(unittest.TestCase):
     def test_commit_on_redirect(self):
         self._create_test_table()
 
-        def test(db):
-            self._insert_one(db)
+        def test(pymydb):
+            self._insert_one(pymydb)
             bottle.redirect('/')
 
         self._run(test)
@@ -178,29 +191,29 @@ class BottleMySQLTest(unittest.TestCase):
     def test_commit_on_abort(self):
         self._create_test_table()
 
-        def test(db):
-            self._insert_one(db)
+        def test(pymydb):
+            self._insert_one(pymydb)
             bottle.abort()
 
         self._run(test)
         self.assert_records(0)
 
     def assert_records(self, count):
-        def query_count(db):
-            db.execute('''SELECT COUNT(1) AS c FROM `bottle_mysql_test`''')
-            self.assertEqual({'c': count}, db.fetchone())
+        def query_count(pymydb):
+            pymydb.execute('''SELECT COUNT(1) AS c FROM `bottle_mysql_test`''')
+            self.assertEqual({'c': count}, pymydb.fetchone())
 
         self._run(query_count)
 
-    def _insert_one(self, db, data='test'):
-        rows = db.execute(''' INSERT INTO `bottle_mysql_test` VALUE (NULL, %s) ''', (data,))
+    def _insert_one(self, pymydb, data='test'):
+        rows = pymydb.execute(''' INSERT INTO `bottle_mysql_test` VALUE (NULL, %s) ''', (data,))
         self.assertEqual(rows, 1)
 
     def _create_test_table(self):
-        def init(db):
-            db.execute('''DROP TABLE IF EXISTS `bottle_mysql_test`; ''')
+        def init(pymydb):
+            pymydb.execute('''DROP TABLE IF EXISTS `bottle_mysql_test`; ''')
 
-            db.execute('''
+            pymydb.execute('''
             CREATE TABLE `bottle_mysql_test` (
               `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
               `text` varchar(11) DEFAULT NULL,
@@ -225,7 +238,7 @@ class BottleMySQLTest(unittest.TestCase):
         kwargs.setdefault('dbpass', self.PASS)
         kwargs.setdefault('dbname', self.DBNAME)
         kwargs.setdefault('dbhost', self.DBHOST)
-        plugin = bottle_mysql.Plugin(**kwargs)
+        plugin = bottle_pymysql.Plugin(**kwargs)
 
         app.install(plugin)
 
