@@ -1,6 +1,6 @@
 Bottle-PyMySQL
 ============
-[![Build Status](https://travis-ci.org/tg123/bottle-pymysql.svg?branch=master)](https://travis-ci.org/tg123/bottle-pymysql)
+[![Build Status](https://travis-ci.org/tinal/bottle-pymysql.svg?branch=master)](https://travis-ci.org/tonal/bottle-pymysql)
 [![Latest Version](https://pypip.in/version/bottle-pymysql/badge.svg)](https://pypi.python.org/pypi/bottle-pymysql/)
 [![Downloads](https://pypip.in/download/bottle-pymysql/badge.svg)](https://pypi.python.org/pypi/bottle-pymysql/)
 
