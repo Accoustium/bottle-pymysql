@@ -8,7 +8,7 @@ MySQL is the world's most used relational database management system (RDBMS) tha
 as a server providing multi-user access to a number of databases.
 
 This plugin simplifies the use of mysql databases in your Bottle applications. 
-Once installed, all you have to do is to add an ``db`` keyword argument 
+Once installed, all you have to do is to add an ``pymydb`` keyword argument 
 (configurable) to route callbacks that need a database connection.
 
 
@@ -32,7 +32,7 @@ Usage
 -----
 
 Once installed to an application, the plugin passes an open 
-:class:`MySQLdb.connect().cursor()` instance to all routes that requires an ``db`` keyword 
+:class:`MySQLdb.connect().cursor()` instance to all routes that requires an ``pymydb`` keyword 
 argument:
 
     import bottle
@@ -51,7 +51,7 @@ argument:
             return template('showitem', page=row)
         return HTTPError(404, "Page not found")
 
-Routes that do not expect an ``db`` keyword argument are not affected.
+Routes that do not expect an ``pymydb`` keyword argument are not affected.
 
 The connection handle is configurable so that rows can be returned as either an
 index (like tuples) or as dictionaries. At the end of the request cycle, outstanding
@@ -79,7 +79,7 @@ The following configuration options exist for the plugin class:
 You can override each of these values on a per-route basis: 
 
     @app.route('/cache/<item>', pymysql={'dbname': 'xyz_db'})
-    def cache(item, db):
+    def cache(item, pymydb):
         ...
    
 or install two plugins with different ``keyword`` settings to the same application:
