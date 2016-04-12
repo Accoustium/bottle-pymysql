@@ -26,10 +26,8 @@ setup(
     author_email = 'tonal@promsoft.ru',
     license = __license__,
     platforms = 'any',
-    py_modules = [
-        'bottle_pymysql'
-    ],
-    requires = [i.strip() for i in open("requirements.txt").readlines()],
+    py_modules = ['bottle_pymysql'],
+    install_requires=['bottle', 'PyMySQL'],
     classifiers = [
         'Environment :: Web Environment',
         'Intended Audience :: Developers',

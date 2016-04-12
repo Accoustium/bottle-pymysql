@@ -107,7 +107,7 @@ class PyMySQLPlugin(object):
             g = lambda key, default: config.get('pymysql.' + key, default)
 
         keyword = g('keyword', self.keyword)
-        # Test if the original callback accepts a 'db' keyword.
+        # Test if the original callback accepts a 'pymydb' keyword.
         # Ignore it if it does not need a database handle.
         _args = inspect.getargspec(_callback)
         if keyword not in _args.args:
