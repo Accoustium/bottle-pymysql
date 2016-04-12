@@ -5,7 +5,7 @@ request, passes the database handle to the route callback and closes the
 connection afterwards.
 
 To automatically detect routes that need a database connection, the plugin
-searches for route callbacks that require a `db` keyword argument
+searches for route callbacks that require a `pymydb` keyword argument
 (configurable) and skips routes that do not. This removes any overhead for
 routes that don't need a database connection.
 
