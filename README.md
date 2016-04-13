@@ -70,7 +70,7 @@ The following configuration options exist for the plugin class:
 * **dbhost**: Databse server host (default: 'localhost').
 * **dbport**: Databse server port (default: 3306).
 * **dbunixsocket**: Optionally, you can use a unix socket rather than TCP/IP.
-* **keyword**: The keyword argument name that triggers the plugin (default: 'db').
+* **keyword**: The keyword argument name that triggers the plugin (default: 'pymydb').
 * **autocommit**: Whether or not to commit outstanding transactions at the end of the request cycle (default: True).
 * **dictrows**: Whether or not to support dict-like access to row objects (default: True).
 * **charset**: Database connection charset (default: 'utf8')
