@@ -31,7 +31,7 @@ Usage Example::
 '''
 
 __author__ = "Alexandr N. Zamaraev"
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 __license__ = 'MIT'
 
 ### CUT HERE (see setup.py)
@@ -53,7 +53,7 @@ if not hasattr(bottle, 'PluginError'):
 class PyMySQLPlugin(object):
     '''
     This plugin passes a mysql database handle to route callbacks
-    that accept a `db` keyword argument. If a callback does not expect
+    that accept a `pymydb` keyword argument. If a callback does not expect
     such a parameter, no connection is made. You can override the database
     settings on a per-route basis.
     '''
@@ -148,6 +148,7 @@ class PyMySQLPlugin(object):
                 con = pymysql.connect(**kw)
 
                 cur = con.cursor()
+                cur.escape_string = con.escape_string
                 if timezone:
                     cur.execute("set time_zone=%s", (timezone, ))
 

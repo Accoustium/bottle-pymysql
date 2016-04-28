@@ -198,6 +198,18 @@ class BottlePyMySQLTest(unittest.TestCase):
         self._run(test)
         self.assert_records(0)
 
+    def test_escape_string(self):
+        self._create_test_table()
+
+        def test(pymydb):
+            self._insert_one(pymydb, 'test')
+            pymydb.execute(
+                "SELECT COUNT(*) AS c FROM `bottle_mysql_test` WHERE `text` LIKE '%%%s%%'" % pymydb.escape_string('te'))
+            self.assertEqual({'c': 1}, pymydb.fetchone())
+
+        self._run(test)
+        self.assert_records(1)
+
     def assert_records(self, count):
         def query_count(pymydb):
             pymydb.execute('''SELECT COUNT(1) AS c FROM `bottle_mysql_test`''')
