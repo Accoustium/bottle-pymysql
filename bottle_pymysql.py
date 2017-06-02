@@ -62,8 +62,10 @@ class PyMySQLPlugin(object):
     api = 2
 
     def __init__(
-        self, dbuser=None, dbpass=None, dbname=None, dbhost='localhost', dbport=3306, dbunixsocket=None,
-        autocommit=True, dictrows=True, keyword='pymydb', charset='utf8', timezone=None
+        self, dbuser=None, dbpass=None, dbname=None, dbhost='localhost',
+        dbport=3306, dbunixsocket=None, autocommit=True, dictrows=True,
+        dbread_timeout=None, dbwrite_timeout=None,
+        keyword='pymydb', charset='utf8', timezone=None
     ):
         self.dbhost = dbhost
         self.dbport = dbport
@@ -71,6 +73,8 @@ class PyMySQLPlugin(object):
         self.dbuser = dbuser
         self.dbpass = dbpass
         self.dbname = dbname
+        self.dbread_timeout = dbread_timeout
+        self.dbwrite_timeout = dbwrite_timeout
         self.autocommit = autocommit
         self.dictrows = dictrows
         self.keyword = keyword
@@ -119,6 +123,8 @@ class PyMySQLPlugin(object):
         dbuser = g('dbuser', self.dbuser)
         dbpass = g('dbpass', self.dbpass)
         dbname = g('dbname', self.dbname)
+        dbread_timeout = g('dbread_timeout', self.dbread_timeout)
+        dbwrite_timeout = g('dbwrite_timeout', self.dbwrite_timeout)
         autocommit = g('autocommit', self.autocommit)
         dictrows = g('dictrows', self.dictrows)
         charset = g('charset', self.charset)
@@ -144,6 +150,12 @@ class PyMySQLPlugin(object):
                 else:
                     kw['host'] = dbhost
                     kw['port'] = dbport
+
+                if dbread_timeout is not None:
+                    kw['read_timeout'] = int(dbread_timeout)
+
+                if dbwrite_timeout is not None:
+                    kw['write_timeout'] = int(dbwrite_timeout)
 
                 con = pymysql.connect(**kw)
 
