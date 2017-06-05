@@ -21,7 +21,6 @@ __pycache__
 
 # Installer logs
 pip-log.txt
-upload2pypi
 
 # Unit test / coverage reports
 .coverage
@@ -36,5 +35,3 @@ nosetests.xml
 .project
 .pydevproject
 MANIFEST
-
-/.idea/
