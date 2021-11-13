@@ -1,8 +1,6 @@
 Bottle-PyMySQL
 ============
-[![Build Status](https://travis-ci.org/tonal/bottle-pymysql.svg?branch=master)](https://travis-ci.org/tonal/bottle-pymysql)
-[![PyPI version](https://badge.fury.io/py/bottle-pymysql.svg)](https://badge.fury.io/py/bottle-pymysql)
-[![Downloads](https://pypip.in/download/bottle-pymysql/badge.svg)](https://pypi.python.org/pypi/bottle-pymysql)
+This is a forked version of https://github.com/tonal/bottle-pymysql
 
 MySQL is the world's most used relational database management system (RDBMS) that runs
 as a server providing multi-user access to a number of databases.
