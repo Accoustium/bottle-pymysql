@@ -3,6 +3,9 @@
 # C extensions
 *.so
 
+# IntelliJ idea files
+.idea
+
 # Packages
 *.egg
 *.egg-info
